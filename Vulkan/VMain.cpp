@@ -20,6 +20,7 @@ public:
 
 private:
 	GLFWwindow* window;
+	VkInstance instance;
 
 	void initWindow() {
 		glfwInit();
@@ -27,8 +28,9 @@ private:
 		glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 		window = glfwCreateWindow(WIDTH, HEIGHT, "Vulkan", nullptr, nullptr);
 	}
-	void initVulkan() {
 
+	void initVulkan() {
+		createInstance();
 	}
 
 	void mainLoop() {
@@ -40,6 +42,39 @@ private:
 	void cleanup() {
 		glfwDestroyWindow(window);
 		glfwTerminate();
+	}
+
+	void createInstance() {
+		// This struct may be used by vulkan for optimization;
+		
+		VkApplicationInfo appinfo{};
+		appinfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
+		appinfo.pApplicationName = "Vulkan Triangle";
+		appinfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
+		appinfo.pEngineName = "none";
+		appinfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
+		appinfo.apiVersion = VK_API_VERSION_1_0;
+
+		// This one tells what extensions and validation layers we use
+		
+		VkInstanceCreateInfo createInfo{};
+		createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+		createInfo.pApplicationInfo = &appinfo;
+
+		//extensions
+		uint32_t glfwExtensionCount=0;
+		const char** glfwExtensions;
+		glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
+		createInfo.enabledExtensionCount = glfwExtensionCount;
+		createInfo.ppEnabledExtensionNames = glfwExtensions;
+
+		//validation layers
+		createInfo.enabledLayerCount = 0;
+		VkResult result = vkCreateInstance(&createInfo, nullptr, &instance); // no allocation callbacks
+
+		if (vkCreateInstance(&createInfo, nullptr, &instance) != VK_SUCCESS) {
+			throw std::runtime_error("failed to create instance");
+		}
 	}
 };
 
